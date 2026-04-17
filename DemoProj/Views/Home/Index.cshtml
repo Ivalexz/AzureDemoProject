@@ -1,0 +1,63 @@
+﻿@model DemoProj.Models.RequestFromModel
+
+@{
+    ViewData["Title"] = "Home Page";
+    var requests = ViewBag.Requests as List<DemoProj.Models.RequestModel>;
+}
+
+<h2>New Request</h2>
+<form method="post" asp-action="Index">
+    <div class="form-group">
+        <label asp-for="Name">Name</label>
+        <input asp-for="Name" class="form-control"/>
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Email">Email</label>
+        <input asp-for="Email" class="form-control"/>
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Message">Message</label>
+        <textarea asp-for="Message" class="form-control"></textarea>
+        <span asp-validation-for="Message" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Topic">Topic</label>
+        <input asp-for="Topic" class="form-control"/>
+        <span asp-validation-for="Topic" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+@if (requests != null && requests.Count > 0)
+{
+    <h2>All Requests</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Message</th>
+                <th>Topic</th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in requests)
+            {
+                <tr>
+                    <td>@r.Name</td>
+                    <td>@r.Email</td>
+                    <td>@r.Message</td>
+                    <td>@r.Topic</td>
+                    <td>@r.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-rowKey="@r.RowKey" class="btn btn-sm btn-warning">Edit</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
