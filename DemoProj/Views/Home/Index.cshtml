@@ -1,63 +1,142 @@
 ﻿@model DemoProj.Models.RequestFromModel
-
 @{
-    ViewData["Title"] = "Home Page";
-    var requests = ViewBag.Requests as List<DemoProj.Models.RequestModel>;
+    ViewData["Title"] = "Support Requests";
+    var requests = ViewBag.Requests as List<DemoProj.Models.RequestModel> ?? new();
+    var search = ViewBag.Search as string ?? "";
 }
 
-<h2>New Request</h2>
-<form method="post" asp-action="Index">
-    <div class="form-group">
-        <label asp-for="Name">Name</label>
-        <input asp-for="Name" class="form-control"/>
-        <span asp-validation-for="Name" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="Email">Email</label>
-        <input asp-for="Email" class="form-control"/>
-        <span asp-validation-for="Email" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="Message">Message</label>
-        <textarea asp-for="Message" class="form-control"></textarea>
-        <span asp-validation-for="Message" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="Topic">Topic</label>
-        <input asp-for="Topic" class="form-control"/>
-        <span asp-validation-for="Topic" class="text-danger"></span>
-    </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-</form>
+<div class="container py-4">
 
-@if (requests != null && requests.Count > 0)
-{
-    <h2>All Requests</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Message</th>
-                <th>Topic</th>
-                <th>Created At</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var r in requests)
+    <h2 class="mb-4">Support Requests</h2>
+
+    @* --- Пошук --- *@
+    <form method="get" asp-action="Index" class="mb-4">
+        <div class="input-group" style="max-width:400px">
+            <input type="text" name="search" value="@search"
+                   class="form-control" placeholder="Search by name, email, topic…" />
+            <button class="btn btn-outline-secondary" type="submit">Search</button>
+            @if (!string.IsNullOrEmpty(search))
             {
-                <tr>
-                    <td>@r.Name</td>
-                    <td>@r.Email</td>
-                    <td>@r.Message</td>
-                    <td>@r.Topic</td>
-                    <td>@r.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                    <td>
-                        <a asp-action="Edit" asp-route-rowKey="@r.RowKey" class="btn btn-sm btn-warning">Edit</a>
-                    </td>
-                </tr>
+                <a asp-action="Index" class="btn btn-outline-danger">Clear</a>
             }
-        </tbody>
-    </table>
+        </div>
+    </form>
+
+    @* --- Таблиця заявок --- *@
+    @if (!requests.Any())
+    {
+        <div class="alert alert-info">No requests found.</div>
+    }
+    else
+    {
+        <div class="table-responsive mb-5">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Topic</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in requests)
+                    {
+                        <tr>
+                            <td>@r.Name</td>
+                            <td>@r.Email</td>
+                            <td>@r.Phone</td>
+                            <td>@r.Topic</td>
+                            <td>@r.Category</td>
+                            <td>
+                                @{
+                                    var badge = r.Status switch
+                                    {
+                                        "New"     => "bg-primary",
+                                        "Updated" => "bg-warning text-dark",
+                                        "Closed"  => "bg-secondary",
+                                        _         => "bg-light text-dark"
+                                    };
+                                }
+                                <span class="badge @badge">@r.Status</span>
+                            </td>
+                            <td>@r.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td>
+                                <a asp-action="Edit" asp-route-rowKey="@r.RowKey"
+                                   class="btn btn-sm btn-outline-primary me-1">Edit</a>
+
+                                <form asp-action="Close" method="post" class="d-inline">
+                                    <input type="hidden" name="rowKey" value="@r.RowKey" />
+                                    <button type="submit" class="btn btn-sm btn-outline-success me-1"
+                                            @(r.Status == "Closed" ? "disabled" : "")>Close</button>
+                                </form>
+
+                                <form asp-action="Delete" method="post" class="d-inline"
+                                      onsubmit="return confirm('Delete this request?')">
+                                    <input type="hidden" name="rowKey" value="@r.RowKey" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <hr />
+
+    @* --- Форма створення нової заявки --- *@
+    <h4 class="mb-3">New Request</h4>
+
+    <form asp-action="Index" method="post" style="max-width:560px">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label"></label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label"></label>
+            <input asp-for="Email" class="form-control" type="email" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Phone" class="form-label"></label>
+            <input asp-for="Phone" class="form-control" />
+            <span asp-validation-for="Phone" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Topic" class="form-label"></label>
+            <input asp-for="Topic" class="form-control" />
+            <span asp-validation-for="Topic" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Category" class="form-label"></label>
+            <select asp-for="Category" class="form-select">
+                <option value="">— Select category —</option>
+                <option>Technical</option>
+                <option>Billing</option>
+                <option>General</option>
+                <option>Other</option>
+            </select>
+            <span asp-validation-for="Category" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Message" class="form-label"></label>
+            <textarea asp-for="Message" class="form-control" rows="4"></textarea>
+            <span asp-validation-for="Message" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit Request</button>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

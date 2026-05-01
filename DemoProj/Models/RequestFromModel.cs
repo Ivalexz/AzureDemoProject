@@ -12,4 +12,8 @@ public class RequestFromModel
     public string Message { get; set; } = string.Empty;
     [Required(ErrorMessage = "Enter topic")]
     public string Topic { get; set; } = string.Empty;
+    [Required(ErrorMessage = "Enter your phone")]
+    public string Phone { get; set; } = string.Empty;
+    [Required(ErrorMessage = "Enter category")]
+    public string Category { get; set; } = string.Empty;
 }

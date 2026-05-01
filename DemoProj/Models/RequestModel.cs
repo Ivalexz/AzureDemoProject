@@ -14,5 +14,9 @@ public class RequestModel : ITableEntity
     public string Email { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
     public string Topic { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+    public string Category { get; set; } = string.Empty;
+    public string Status { get; set; } = "New";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
 }

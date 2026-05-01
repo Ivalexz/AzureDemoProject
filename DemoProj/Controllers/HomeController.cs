@@ -14,9 +14,10 @@ public class HomeController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? search)
     {
-        ViewBag.Requests = await _azureTableService.GetAllRequest();
+        ViewBag.Search = search;
+        ViewBag.Requests = await _azureTableService.GetFilteredRequests(search);
         return View(new RequestFromModel());
     }
 
@@ -28,7 +29,7 @@ public class HomeController : Controller
             await _azureTableService.AddRequest(obj);
             return RedirectToAction("Index");
         }
-        ViewBag.Requests = await _azureTableService.GetAllRequest();
+        ViewBag.Requests = await _azureTableService.GetFilteredRequests(null);
         return View(obj);
     }
 
@@ -47,7 +48,9 @@ public class HomeController : Controller
             Name = req.Name,
             Email = req.Email,
             Message = req.Message,
-            Topic = req.Topic
+            Topic = req.Topic,
+            Phone = req.Phone,
+            Category = req.Category,
         };
 
         ViewBag.RowKey = rowKey;
@@ -64,5 +67,19 @@ public class HomeController : Controller
         }
         ViewBag.Requests = await _azureTableService.GetAllRequest();
         return View(obj);
+    }
+    
+    [HttpPost]
+    public async Task<IActionResult> Delete(string rowKey)
+    {
+        await _azureTableService.DeleteRequest(rowKey);
+        return RedirectToAction("Index");
+    }
+    
+    [HttpPost]
+    public async Task<IActionResult> Close(string rowKey)
+    {
+        await _azureTableService.CloseRequest(rowKey);
+        return RedirectToAction("Index");
     }
 }
